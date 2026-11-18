@@ -1,0 +1,5 @@
+{
+  "name": "LUMI Beta Admin Panel",
+  "description": "LUMI Beta Admin Panel for remote update control, beta analytics, and tester feedback.",
+  "requestFramePermissions": []
+}
