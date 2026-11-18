@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LUMI Beta Admin Panel</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-icon">L</span>
+      <span class="brand-name">LUMI <span class="beta-badge">BETA v0.1.9</span></span>
+    </div>
+    <div class="auth-actions">
+      <button class="btn btn-primary" id="signInBtn">Sign in with Google</button>
+      <button class="btn btn-danger" id="signOutBtn" style="display:none;">Sign Out</button>
+    </div>
+  </header>
+  <section id="authGate" class="auth-gate">
+    <div class="gate-card">
+      <h1>Admin Access Required</h1>
+      <p>Sign in with your Google account to access the LUMI Beta Admin Panel.</p>
+      <p class="admin-email">Authorized admin: <strong>inammdletye1@gmail.com</strong></p>
+      <button class="btn btn-primary btn-large" id="gateSignInBtn">Sign in with Google</button>
+    </div>
+  </section>
+  <main id="dashboard" class="dashboard" style="display:none;">
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="control">Beta Control</button>
+      <button class="tab-btn" data-tab="analytics">Analytics</button>
+      <button class="tab-btn" data-tab="feedback">Feedback Inbox</button>
+    </nav>
+    <section id="tab-control" class="tab-panel active">
+      <div class="control-grid">
+        <div class="card form-card">
+          <h2>Remote Update &amp; End-of-Beta Controller</h2>
+          <p class="subtitle">Controls the <code>app_config/beta_control</code> document pushed to all beta APKs.</p>
+          <form id="betaControlForm">
+            <div class="form-row">
+              <label class="toggle-label">
+                <input type="checkbox" id="ctrlEnabled" />
+                <span class="toggle-slider"></span>
+                <span>Enabled</span>
+              </label>
+              <label class="toggle-label">
+                <input type="checkbox" id="ctrlBlocking" />
+                <span class="toggle-slider"></span>
+                <span>Blocking (End-of-Beta Lock)</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Title</label>
+              <input type="text" id="ctrlTitle" maxlength="120" placeholder="Modal headline" />
+            </div>
+            <div class="form-group">
+              <label>Message</label>
+              <textarea id="ctrlMessage" maxlength="600" rows="3" placeholder="e.g. Thank you for using LUMI..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Button Text</label>
+              <input type="text" id="ctrlButtonText" maxlength="50" placeholder="CTA label" />
+            </div>
+            <div class="form-group">
+              <label>Redirect URL</label>
+              <input type="url" id="ctrlRedirectUrl" maxlength="500" placeholder="https://play.google.com/..." />
+            </div>
+            <div class="form-group">
+              <label>Min Supported Version Code</label>
+              <input type="number" id="ctrlMinVersion" min="0" max="100000" value="20" />
+              <span class="field-hint">Use <b>20</b> to target v0.1.9 beta (code 19) and below.</span>
+            </div>
+            <button type="submit" class="btn btn-success btn-wide" id="publishBtn">
+              Publish Live Control
+            </button>
+          </form>
+          <div id="publishStatus" class="status-msg"></div>
+        </div>
+        <div class="card preview-card">
+          <h2>Live Mobile Preview</h2>
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <div class="preview-modal" id="previewModal">
+                <div class="modal-header" id="previewHeader">Title</div>
+                <div class="modal-body" id="previewBody">Message</div>
+                <button class="modal-btn" id="previewBtn">Button</button>
+              </div>
+              <div class="phone-nav">
+                <div class="nav-dot active"></div>
+                <div class="nav-dot"></div>
+                <div class="nav-dot"></div>
+              </div>
+            </div>
+          </div>
+          <p class="preview-hint">Preview updates automatically as you edit the form.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-analytics" class="tab-panel">
+      <h2>Beta Analytics Dashboard</h2>
+      <p class="subtitle">Aggregated from <code>beta_daily_pings</code> heartbeats sent by v0.1.9 beta APKs.</p>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-value" id="metricTotalInstalls">-</div>
+          <div class="metric-label">Total Unique Installs</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metricDAU">-</div>
+          <div class="metric-label">Daily Active Users (latest)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metricAvgRating">-</div>
+          <div class="metric-label">Avg Tester Rating (1–5)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metricFeedbackCount">-</div>
+          <div class="metric-label">Feedback Submissions</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metricOrbAdoption">-</div>
+          <div class="metric-label">Floating Orb Adoption</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metricDownloadAdoption">-</div>
+          <div class="metric-label">Offline Download Adoption</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metricLowEndShare">-</div>
+          <div class="metric-label">Low-End Device Share</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metricStreamErrors">-</div>
+          <div class="metric-label">Stream Error Count</div>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="card chart-card">
+          <h3>DAU Over Time</h3>
+          <canvas id="chartDAU"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3>Top Device Models</h3>
+          <canvas id="chartDevices"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3>Android OS Breakdown</h3>
+          <canvas id="chartOS"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3>Adoption: Orb vs Downloads</h3>
+          <canvas id="chartAdoption"></canvas>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="refreshAnalytics">Refresh Data</button>
+    </section>
+    <section id="tab-feedback" class="tab-panel">
+      <h2>Tester Reviews &amp; Feedback Inbox</h2>
+      <p class="subtitle">Anonymous tester star ratings, usefulness votes, and comments from <code>beta_feedback</code>.</p>
+      <div class="feedback-summary">
+        <div class="summary-item">
+          <div class="summary-value" id="fbAvgRating">-</div>
+          <div class="summary-label">Avg Rating</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value" id="fbTotalReviews">-</div>
+          <div class="summary-label">Total Reviews</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value" id="fbVeryUseful">-</div>
+          <div class="summary-label">Very Useful</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value" id="fbSomewhatUseful">-</div>
+          <div class="summary-label">Somewhat Useful</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value" id="fbNeedsWork">-</div>
+          <div class="summary-label">Needs Work</div>
+        </div>
+      </div>
+      <div class="feedback-list-container">
+        <table class="feedback-table">
+          <thead>
+            <tr>
+              <th>Rating</th>
+              <th>Usefulness</th>
+              <th>Tags</th>
+              <th>Comment</th>
+              <th>Device</th>
+              <th>Android</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="feedbackTableBody"></tbody>
+        </table>
+      </div>
+      <div id="feedbackStatus" class="status-msg"></div>
+      <button class="btn btn-primary" id="refreshFeedback">Refresh Feedback</button>
+    </section>
+  </main>
+  <footer class="app-footer">
+    <p>LUMI Beta Admin Panel &middot; Single-user admin access &middot; Connects to Firestore database <code>ai-studio-android-lumi-6c0bf2ea-20fa-41fb-b7da-e89eeb10fc37</code></p>
+  </footer>
+  <script type="module">
+    import {
+      signInAdminWithGoogle,
+      signOutAdmin,
+      observeAdminAuth,
+      subscribeBetaControl,
+      getBetaControl,
+      saveBetaControl,
+      fetchDailyPings,
+      fetchBetaFeedback,
+      deleteBetaFeedback,
+      computeBetaAnalytics,
+    } from './lumi-admin-sdk.mjs';
+
+    let currentUser = null;
+    let charts = {};
+
+    const authGate = document.getElementById('authGate');
+    const dashboard = document.getElementById('dashboard');
+    const signInBtn = document.getElementById('signInBtn');
+    const gateSignInBtn = document.getElementById('gateSignInBtn');
+    const signOutBtn = document.getElementById('signOutBtn');
+
+    function updateAuthUI(user) {
+      currentUser = user;
+      if (user) {
+        authGate.style.display = 'none';
+        dashboard.style.display = '';
+        signInBtn.style.display = 'none';
+        signOutBtn.style.display = '';
+        loadAllData();
+      } else {
+        authGate.style.display = '';
+        dashboard.style.display = 'none';
+        signInBtn.style.display = '';
+        signOutBtn.style.display = 'none';
+      }
+    }
+
+    signInBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try { await signInAdminWithGoogle(); } catch (err) { alert('Sign-in failed: ' + err.message); }
+    });
+
+    gateSignInBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try { await signInAdminWithGoogle(); } catch (err) { alert('Sign-in failed: ' + err.message); }
+    });
+
+    signOutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try { await signOutAdmin(); } catch (err) { alert('Sign-out failed: ' + err.message); }
+    });
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach((b) => b.classList.remove('active'));
+        tabPanels.forEach((p) => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    const betaControlForm = document.getElementById('betaControlForm');
+    const ctrlEnabled = document.getElementById('ctrlEnabled');
+    const ctrlBlocking = document.getElementById('ctrlBlocking');
+    const ctrlTitle = document.getElementById('ctrlTitle');
+    const ctrlMessage = document.getElementById('ctrlMessage');
+    const ctrlButtonText = document.getElementById('ctrlButtonText');
+    const ctrlRedirectUrl = document.getElementById('ctrlRedirectUrl');
+    const ctrlMinVersion = document.getElementById('ctrlMinVersion');
+    const publishBtn = document.getElementById('publishBtn');
+    const publishStatus = document.getElementById('publishStatus');
+
+    const previewModal = document.getElementById('previewModal');
+    const previewHeader = document.getElementById('previewHeader');
+    const previewBody = document.getElementById('previewBody');
+    const previewBtn = document.getElementById('previewBtn');
+
+    function renderBetaControl(data) {
+      if (!data) return;
+      ctrlEnabled.checked = !!data.enabled;
+      ctrlBlocking.checked = !!data.blocking;
+      ctrlTitle.value = data.title || '';
+      ctrlMessage.value = data.message || '';
+      ctrlButtonText.value = data.buttonText || '';
+      ctrlRedirectUrl.value = data.redirectUrl || '';
+      ctrlMinVersion.value = data.minSupportedVersionCode ?? 20;
+      updatePreview();
+    }
+
+    function updatePreview() {
+      previewHeader.textContent = ctrlTitle.value || 'Title';
+      previewBody.textContent = ctrlMessage.value || 'Message';
+      previewBtn.textContent = ctrlButtonText.value || 'Button';
+      previewModal.classList.toggle('blocking', ctrlBlocking.checked);
+      previewModal.classList.toggle('soft', !ctrlBlocking.checked);
+    }
+
+    [ctrlEnabled, ctrlBlocking, ctrlTitle, ctrlMessage, ctrlButtonText, ctrlRedirectUrl, ctrlMinVersion].forEach(
+      (el) => el.addEventListener('input', updatePreview)
+    );
+
+    betaControlForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      publishBtn.disabled = true;
+      publishBtn.textContent = 'Publishing...';
+      publishStatus.textContent = '';
+      try {
+        await saveBetaControl({
+          enabled: ctrlEnabled.checked,
+          blocking: ctrlBlocking.checked,
+          minSupportedVersionCode: Number(ctrlMinVersion.value) || 0,
+          title: ctrlTitle.value.trim(),
+          message: ctrlMessage.value.trim(),
+          buttonText: ctrlButtonText.value.trim(),
+          redirectUrl: ctrlRedirectUrl.value.trim(),
+        });
+        publishStatus.textContent = 'Published live to all beta APKs!';
+        publishStatus.className = 'status-msg success';
+        setTimeout(() => { publishStatus.textContent = ''; }, 5000);
+      } catch (err) {
+        publishStatus.textContent = 'Publish failed: ' + err.message;
+        publishStatus.className = 'status-msg error';
+      } finally {
+        publishBtn.disabled = false;
+        publishBtn.textContent = 'Publish Live Control';
+      }
+    });
+
+    const metricTotalInstalls = document.getElementById('metricTotalInstalls');
+    const metricDAU = document.getElementById('metricDAU');
+    const metricAvgRating = document.getElementById('metricAvgRating');
+    const metricFeedbackCount = document.getElementById('metricFeedbackCount');
+    const metricOrbAdoption = document.getElementById('metricOrbAdoption');
+    const metricDownloadAdoption = document.getElementById('metricDownloadAdoption');
+    const metricLowEndShare = document.getElementById('metricLowEndShare');
+    const metricStreamErrors = document.getElementById('metricStreamErrors');
+    const refreshAnalyticsBtn = document.getElementById('refreshAnalytics');
+
+    async function loadAnalytics() {
+      try {
+        const pings = await fetchDailyPings(500);
+        const feedback = await fetchBetaFeedback(200);
+        const analytics = computeBetaAnalytics(pings, feedback);
+        metricTotalInstalls.textContent = analytics.totalUniqueInstalls;
+        metricDAU.textContent = Object.values(analytics.dailyActiveUsers).reduce((a, b) => a + b, 0) || '-';
+        metricAvgRating.textContent = analytics.averageRating || '-';
+        metricFeedbackCount.textContent = analytics.feedbackCount;
+        metricOrbAdoption.textContent = analytics.orbAdoptionCount;
+        metricDownloadAdoption.textContent = analytics.offlineDownloadAdoptionCount;
+        const totalInstalls = analytics.totalUniqueInstalls || 1;
+        metricLowEndShare.textContent = ((analytics.lowEndDeviceCount / totalInstalls) * 100).toFixed(1) + '%';
+        metricStreamErrors.textContent = analytics.totalStreamErrors;
+        renderDAUChart(analytics.dailyActiveUsers);
+        renderDevicesChart(analytics.topDevices);
+        renderOSChart(analytics.osBreakdown);
+        renderAdoptionChart(analytics.orbAdoptionCount, analytics.offlineDownloadAdoptionCount);
+      } catch (err) { console.error('Analytics load error:', err); }
+    }
+
+    function renderDAUChart(dauByDate) {
+      const dates = Object.keys(dauByDate).sort().slice(-14);
+      const values = dates.map((d) => dauByDate[d]);
+      const ctx = document.getElementById('chartDAU').getContext('2d');
+      if (charts.dau) charts.dau.destroy();
+      charts.dau = new Chart(ctx, {
+        type: 'line',
+        data: { labels: dates, datasets: [{ label: 'Daily Active Users', data: values, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4, pointRadius: 3 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } } },
+      });
+    }
+
+    function renderDevicesChart(topDevices) {
+      const data = topDevices.slice(0, 8).reverse();
+      const ctx = document.getElementById('chartDevices').getContext('2d');
+      if (charts.devices) charts.devices.destroy();
+      charts.devices = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: data.map((d) => d[0]), datasets: [{ label: 'Installs', data: data.map((d) => d[1]), backgroundColor: '#818cf8' }] },
+        options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#94a3b8' }, grid: { display: false } } } },
+      });
+    }
+
+    function renderOSChart(osBreakdown) {
+      const data = osBreakdown.slice(0, 6).reverse();
+      const ctx = document.getElementById('chartOS').getContext('2d');
+      if (charts.os) charts.os.destroy();
+      charts.os = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: data.map((d) => d[0]), datasets: [{ data: data.map((d) => d[1]), backgroundColor: ['#6366f1', '#818cf8', '#a78bfa', '#c4b5fd', '#ddd6fe', '#f3e8ff'] }] },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } },
+      });
+    }
+
+    function renderAdoptionChart(orbCount, downloadCount) {
+      const ctx = document.getElementById('chartAdoption').getContext('2d');
+      if (charts.adoption) charts.adoption.destroy();
+      charts.adoption = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: ['Floating Orb', 'Offline Downloads'], datasets: [{ label: 'Installs', data: [orbCount, downloadCount], backgroundColor: ['#6366f1', '#10b981'] }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } } },
+      });
+    }
+
+    const feedbackTableBody = document.getElementById('feedbackTableBody');
+    const fbAvgRating = document.getElementById('fbAvgRating');
+    const fbTotalReviews = document.getElementById('fbTotalReviews');
+    const fbVeryUseful = document.getElementById('fbVeryUseful');
+    const fbSomewhatUseful = document.getElementById('fbSomewhatUseful');
+    const fbNeedsWork = document.getElementById('fbNeedsWork');
+    const feedbackStatus = document.getElementById('feedbackStatus');
+    const refreshFeedbackBtn = document.getElementById('refreshFeedback');
+
+    async function loadFeedback() {
+      try {
+        const feedback = await fetchBetaFeedback(200);
+        renderFeedback(feedback);
+      } catch (err) {
+        feedbackStatus.textContent = 'Failed to load feedback: ' + err.message;
+        feedbackStatus.className = 'status-msg error';
+      }
+    }
+
+    function renderFeedback(list) {
+      const ratings = list.map((f) => Number(f.rating || 0)).filter((r) => r >= 1 && r <= 5);
+      const avgRating = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : '-';
+      const veryUseful = list.filter((f) => f.usefulness === 'very_useful').length;
+      const somewhatUseful = list.filter((f) => f.usefulness === 'somewhat_useful').length;
+      const needsWork = list.filter((f) => f.usefulness === 'needs_work').length;
+      fbAvgRating.textContent = avgRating;
+      fbTotalReviews.textContent = list.length;
+      fbVeryUseful.textContent = veryUseful;
+      fbSomewhatUseful.textContent = somewhatUseful;
+      fbNeedsWork.textContent = needsWork;
+      feedbackTableBody.innerHTML = '';
+      list.forEach((fb) => {
+        const ratingStars = '★'.repeat(Number(fb.rating || 0)) + '☆'.repeat(5 - Number(fb.rating || 0));
+        const tagsHtml = (fb.tags || []).map((t) => '<span class="tag">' + escapeHtml(t) + '</span>').join('');
+        const date = fb.createdAt ? new Date(fb.createdAt.seconds * 1000).toLocaleDateString() : '-';
+        const row = document.createElement('tr');
+        row.innerHTML = '<td class="rating-cell">' + escapeHtml(ratingStars) + '</td>' +
+          '<td><span class="usefulness-' + escapeHtml(fb.usefulness) + '">' + escapeHtml(fb.usefulness) + '</span></td>' +
+          '<td>' + tagsHtml + '</td>' +
+          '<td class="comment-cell">' + escapeHtml(fb.comment || '') + '</td>' +
+          '<td><span class="device-badge">' + escapeHtml(fb.deviceName || 'Unknown') + '</span></td>' +
+          '<td><span class="os-badge">' + escapeHtml(fb.androidVersion || 'Unknown') + '</span></td>' +
+          '<td>' + date + '</td>' +
+          '<td><button class="btn btn-danger btn-small" data-id="' + escapeHtml(fb.id) + '">Delete</button></td>';
+        feedbackTableBody.appendChild(row);
+      });
+      feedbackTableBody.querySelectorAll('button[data-id]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          if (!confirm('Delete this feedback item?')) return;
+          try {
+            await deleteBetaFeedback(id);
+            btn.closest('tr').remove();
+            feedbackStatus.textContent = 'Feedback deleted.';
+            feedbackStatus.className = 'status-msg success';
+            setTimeout(() => { feedbackStatus.textContent = ''; }, 3000);
+          } catch (err) {
+            feedbackStatus.textContent = 'Delete failed: ' + err.message;
+            feedbackStatus.className = 'status-msg error';
+          }
+        });
+      });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function loadAllData() {
+      subscribeBetaControl(
+        (data) => { renderBetaControl(data); },
+        (err) => { console.error('Beta control subscription error:', err); }
+      );
+      const current = await getBetaControl();
+      renderBetaControl(current);
+      loadAnalytics();
+      loadFeedback();
+    }
+
+    refreshAnalyticsBtn.addEventListener('click', loadAnalytics);
+    refreshFeedbackBtn.addEventListener('click', loadFeedback);
+  </script>
+</body>
+</html>

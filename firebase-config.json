@@ -1,0 +1,21 @@
+{
+  "projectId": "gen-lang-client-0051593501",
+  "projectNumber": "870548002160",
+  "authDomain": "gen-lang-client-0051593501.firebaseapp.com",
+  "storageBucket": "gen-lang-client-0051593501.firebasestorage.app",
+  "apiKey": "AIzaSyBkyCy96ukcdxuWrf8vwAPDGh0FaBokeDY",
+  "firestoreDatabaseId": "ai-studio-android-lumi-6c0bf2ea-20fa-41fb-b7da-e89eeb10fc37",
+  "adminEmail": "inammdletye1@gmail.com",
+  "androidApp": {
+    "packageName": "com.lumimusic.play",
+    "versionName": "0.1.9",
+    "versionCode": 19,
+    "mobilesdkAppId": "1:870548002160:android:33a832c0c62deaed246bb5"
+  },
+  "collections": {
+    "betaControlDocPath": "app_config/beta_control",
+    "dailyPingsCollection": "beta_daily_pings",
+    "feedbackCollection": "beta_feedback",
+    "adminsCollection": "admins"
+  }
+}

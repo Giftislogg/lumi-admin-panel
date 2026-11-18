@@ -1,0 +1,20 @@
+{
+  "softNoticeExample": {
+    "enabled": true,
+    "blocking": false,
+    "minSupportedVersionCode": 0,
+    "title": "Lumi Beta v0.1.9 Notice",
+    "message": "Thanks for testing Lumi Final Beta! Tap below if you'd like to visit the official Lumi page.",
+    "buttonText": "Visit Lumi",
+    "redirectUrl": "https://your-lumi-site-or-play-store-link.com"
+  },
+  "endOfBetaBlockingLockExample": {
+    "enabled": true,
+    "blocking": true,
+    "minSupportedVersionCode": 20,
+    "title": "Thank You for Beta Testing Lumi",
+    "message": "Thank you for using LUMI. This was a beta version test. You can get the final release here.",
+    "buttonText": "Get Final Release",
+    "redirectUrl": "https://play.google.com/store/apps/details?id=com.lumimusic.play"
+  }
+}
